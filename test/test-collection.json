@@ -1,0 +1,51 @@
+{
+	"info": {
+		"_postman_id": "b4b571b9-6945-491c-bff7-3ff53f92c750",
+		"name": "MyCollection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "MySubFolder",
+			"item": [
+				{
+					"name": "MyYahoo",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://my.yahoo.com",
+							"protocol": "http",
+							"host": [
+								"my",
+								"yahoo",
+								"com"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Google-com",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://www.google.com/",
+					"protocol": "http",
+					"host": [
+						"www",
+						"google",
+						"com"
+					],
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
