@@ -9,8 +9,9 @@ pub struct Info{
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(untagged)]
 pub enum Item{
-    Path(Folder),
-    EndPoint(EndPoint)
+    Folder(Folder),
+    HttpRequest(HttpRequest),
+    Unknown(serde_json::Value)
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -21,10 +22,9 @@ pub struct Folder{
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct EndPoint{
+pub struct HttpRequest {
     pub name: String,
-    pub request: Request,
-    pub response: Response
+    pub request: Request
 }
 
 #[derive(Serialize, Deserialize, Debug)]

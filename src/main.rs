@@ -1,5 +1,5 @@
 use std::{fs, path::Path};
-use pm2rc::{Collection,Folder,Item,EndPoint};
+use pm2rc::{Collection, Folder, Item, HttpRequest};
 
 fn main()-> Result<(), serde_json::Error>{
     let args: Vec<String> = std::env::args().collect();
@@ -7,19 +7,21 @@ fn main()-> Result<(), serde_json::Error>{
         println!("Usage:\r\n{} <Postman-Collection-Filename>\r\n",&args[0]);
         return Ok(())
     }
-    let str_json=fs::read_to_string(&args[1]).unwrap();
-    let collection:Collection=serde_json::from_str(&str_json)?;
-    create_directory(&collection.info.name);
-    save_items(&collection.info.name,&collection.items);
-    println!("{:?}",collection);
-    Ok(())
-}
-
-fn create_directory(name:&str){
-    if Path::new(name).is_dir(){
-        panic!("There is an existing test folder: {}",name);
+    let file_path = &args[1];
+    if !Path::new(file_path).exists() {
+        println!("File not found: {}", file_path);
+        return Ok(())
     }
-    fs::create_dir(name).expect("Unable to create directory");
+    let str_json=fs::read_to_string(file_path).unwrap();
+    let collection:Collection=serde_json::from_str(&str_json)?;
+
+    if Path::new(&collection.info.name).is_dir() {
+        println!("Directory already exists: {}", &collection.info.name);
+        return Ok(());
+    }
+
+    save_items(&collection.info.name,&collection.items);
+    Ok(())
 }
 
 fn save_items(directory:&str, items:&Vec<Item>){
@@ -27,10 +29,11 @@ fn save_items(directory:&str, items:&Vec<Item>){
     let mut contents=String::new();
     for item in items{
         match item {
-            Item::Path(Folder { name, items })=>{
-                save_items(&(directory.to_owned()+"/"+&name), items);
+            Item::Folder(Folder { name, items })=>{
+                let sub_directory=format!("{}/{}",directory,name);
+                save_items(&sub_directory, items);
             }
-            Item::EndPoint(EndPoint { name, request, response: _ })=>{
+            Item::HttpRequest(HttpRequest { name, request})=>{
                 let mut bytes=format!("# @{}\r\n{} {}\r\n",name,request.method,request.url.raw);
                 if let Some(headers) = &request.headers {
                     for header in headers{
@@ -44,9 +47,13 @@ fn save_items(directory:&str, items:&Vec<Item>){
                 bytes.push_str("\r\n\r\n###\r\n");
                 contents.push_str(&bytes);
             }
+            Item::Unknown(value) => {eprintln!("Unknown Item: {:?}", value);}
         }
     }
-    if contents.len()>0 {
+    if !contents.is_empty() {
+        if let Some(parent_dir) = Path::new(&filename).parent() {
+            fs::create_dir_all(parent_dir).expect("Unable to create directory");
+        }
         fs::write(filename, contents).unwrap();
     }
 }
